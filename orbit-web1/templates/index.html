@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OreBit — AI-Assisted Manganese Ore Potential Mapping</title>
+  <meta name="description" content="OreBit fuses geological and meteorological data into a single, color-coded read on any point in India — built for mining and weather officials." />
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Leaflet CSS for Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="../src/style.css" />
+</head>
+<body>
+
+  <!-- ================= LANDING INTRO SCREEN ================= -->
+  <div id="landingScreen" class="landing-screen" role="dialog" aria-modal="true" aria-label="Welcome to OreBit">
+    <div class="landing-inner">
+      <div class="landing-brand">
+        <span class="brand-glyph">
+          <svg viewBox="0 0 32 32" class="brand-svg" aria-hidden="true">
+            <circle cx="16" cy="16" r="9" fill="none" stroke="#7C6AFB" stroke-width="2.4" />
+            <circle cx="16" cy="16" r="2.6" fill="#F5A524" />
+          </svg>
+        </span>
+        <span class="brand-title">Ore<span class="brand-accent">Bit</span></span>
+      </div>
+
+      <div class="landing-flow">
+        <div class="landing-step">
+          <span class="landing-step-num">01</span>
+          <div class="landing-step-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+          </div>
+          <span class="landing-step-label">Pick a spot</span>
+        </div>
+
+        <div class="landing-arrow" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m9 18 6-6-6-6"/>
+          </svg>
+        </div>
+
+        <div class="landing-step">
+          <span class="landing-step-num">02</span>
+          <div class="landing-step-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
+            </svg>
+          </div>
+          <span class="landing-step-label">Enter coordinates</span>
+        </div>
+
+        <div class="landing-arrow" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m9 18 6-6-6-6"/>
+          </svg>
+        </div>
+
+        <div class="landing-step">
+          <span class="landing-step-num">03</span>
+          <div class="landing-step-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="10.5" cy="10.5" r="7.5"/>
+              <path d="M8 12v-2M11 12V8M14 12v-4"/>
+              <path d="m21 21-4.35-4.35"/>
+            </svg>
+          </div>
+          <span class="landing-step-label">Instant analysis</span>
+        </div>
+
+        <div class="landing-arrow" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m9 18 6-6-6-6"/>
+          </svg>
+        </div>
+
+        <div class="landing-step">
+          <span class="landing-step-num">04</span>
+          <div class="landing-step-icon landing-step-highlight">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 3h12l4 6-10 12L2 9Z"/>
+              <path d="M11 3 8 9l4 12 4-12-3-6"/>
+              <path d="M2 9h20"/>
+            </svg>
+          </div>
+          <span class="landing-step-label">See potential</span>
+        </div>
+      </div>
+
+      <button type="button" id="landingEnterBtn" class="btn btn-primary btn-glow landing-enter-btn">
+        <span>Get Started</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m9 18 6-6-6-6"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= NAVBAR ================= -->
+  <header id="navbar" class="navbar">
+    <div class="container nav-container">
+      <a href="#top" class="brand-link">
+        <span class="brand-glyph">
+          <svg viewBox="0 0 32 32" class="brand-svg" aria-hidden="true">
+            <circle cx="16" cy="16" r="9" fill="none" stroke="#7C6AFB" stroke-width="2.4" />
+            <circle cx="16" cy="16" r="2.6" fill="#F5A524" />
+          </svg>
+        </span>
+        <span class="brand-title">Ore<span class="brand-accent">Bit</span></span>
+      </a>
+
+      <!-- Desktop Nav -->
+      <nav class="nav-links" aria-label="Main Navigation">
+        <a href="#top" class="nav-link active">Home</a>
+        <a href="#about" class="nav-link">About Us</a>
+        <a href="#how-it-works" class="nav-link">How It Works</a>
+        
+        <!-- Dropdown Menu -->
+        <div class="dropdown-wrapper">
+          <button type="button" class="nav-link dropdown-toggle" id="exploreDropdownBtn" aria-expanded="false">
+            Explore Map
+            <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="m6 9 6 6 6-6"/>
+            </svg>
+          </button>
+          <div class="dropdown-menu" id="exploreDropdownMenu">
+            <a href="#map-section" class="dropdown-item" data-tab="discovered">
+              <span class="dropdown-item-title">Discovered Region</span>
+              <span class="dropdown-item-desc">Browse pre-surveyed manganese belts</span>
+            </a>
+            <a href="#map-section" class="dropdown-item" data-tab="undiscovered">
+              <span class="dropdown-item-title">Undiscovered Region</span>
+              <span class="dropdown-item-desc">Run live AI model on custom coordinates</span>
+            </a>
+          </div>
+        </div>
+      </nav>
+
+      <div class="nav-actions">
+        <!-- Mobile Toggle -->
+        <button type="button" class="mobile-menu-btn" id="mobileMenuToggle" aria-label="Toggle menu">
+          <svg class="icon-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="4" x2="20" y1="12" y2="12"/>
+            <line x1="4" x2="20" y1="6" y2="6"/>
+            <line x1="4" x2="20" y1="18" y2="18"/>
+          </svg>
+          <svg class="icon-close hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Panel -->
+    <div class="mobile-nav-panel hidden" id="mobileNavPanel">
+      <a href="#top" class="mobile-nav-link">Home</a>
+      <a href="#about" class="mobile-nav-link">About Us</a>
+      <a href="#how-it-works" class="mobile-nav-link">How It Works</a>
+      <a href="#map-section" class="mobile-nav-link" data-tab="discovered">Discovered Region</a>
+      <a href="#map-section" class="mobile-nav-link" data-tab="undiscovered">Undiscovered Region</a>
+    </div>
+  </header>
+
+  <!-- ================= HERO SECTION ================= -->
+  <section id="top" class="hero-section">
+    <!-- Video Background -->
+    <div class="hero-media-wrapper">
+      <video class="hero-video" autoplay loop muted playsinline preload="auto">
+        <source src="../src/video/hero.mp4" type="video/mp4" />
+      </video>
+      <div class="hero-fallback-gradient"></div>
+      <div class="hero-overlay-dark"></div>
+      <div class="hero-overlay-soft"></div>
+    </div>
+
+    <!-- Content -->
+    <div class="container hero-content">
+      <div class="hero-badge">
+        <span>GIS DECISION SUPPORT · MANGANESE ORE</span>
+      </div>
+
+      <h1 class="hero-title">
+        See manganese potential <br class="hidden-mobile" />before you survey it.
+      </h1>
+
+      <p class="hero-subtitle">
+        OreBit fuses geological and meteorological data into a single, color-coded read on any point in India — built for mining and weather officials, not GIS specialists.
+      </p>
+
+      <div class="hero-buttons">
+        <a href="#map-section" class="btn btn-primary btn-glow" data-tab="undiscovered">Run an analysis</a>
+        <a href="#how-it-works" class="btn btn-secondary">How it works</a>
+      </div>
+    </div>
+
+    <!-- Scroll Down Chevron -->
+    <a href="#about" class="scroll-down-btn" aria-label="Scroll down">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="m6 9 6 6 6-6"/>
+      </svg>
+    </a>
+  </section>
+
+  <!-- ================= ABOUT US SECTION ================= -->
+  <section id="about" class="section about-section">
+    <div class="container">
+      <div class="section-header text-center">
+        <p class="section-eyebrow">ABOUT US</p>
+        <h2 class="section-title">A shared read on ore potential, for the departments who act on it.</h2>
+        <p class="section-desc">
+          Manganese exploration usually means stitching together separate geological and weather reports by hand. OreBit gives mining directorates and meteorological officials one shared view of a region's potential — and the data behind it.
+        </p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon-wrapper">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 10a2 2 0 0 0 2-2H9v2z"/><path d="M15 10a2 2 0 0 0 2-2h-2v2z"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">Built for officials</h3>
+          <p class="feature-text">
+            Designed around how mining directorates and meteorological departments actually review a site — fast reads, clear numbers, exportable summaries.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-wrapper">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 12.5-8.58 3.91a2 2 0 0 1-1.66 0L2 12.5"/><path d="m22 17.5-8.58 3.91a2 2 0 0 1-1.66 0L2 17.5"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">Geology + climate, together</h3>
+          <p class="feature-text">
+            Combines soil composition, rock type, and historical mining records with rainfall and terrain moisture instead of treating them as separate reports.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-wrapper">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M16 14v6"/><path d="M8 14v6"/><path d="M12 16v6"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">Meteorological context</h3>
+          <p class="feature-text">
+            Surfaces the seasonal and terrain signals that affect both ore accessibility and survey planning — not just a static geology score.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-wrapper">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">A decision aid, not a black box</h3>
+          <p class="feature-text">
+            Every score comes with the supporting factors behind it, so an official can see why a zone was flagged before acting on it.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= HOW IT WORKS SECTION ================= -->
+  <section id="how-it-works" class="section how-it-works-section">
+    <div class="container">
+      <div class="section-header text-center">
+        <p class="section-eyebrow">HOW IT WORKS</p>
+        <h2 class="section-title">From satellite and terrain data to a decision-ready score</h2>
+      </div>
+
+      <div class="pipeline-grid">
+        <div class="pipeline-card">
+          <div class="pipeline-top">
+            <span class="step-tag">01</span>
+            <div class="pipeline-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/>
+              </svg>
+            </div>
+          </div>
+          <h3 class="pipeline-title">Data Ingestion</h3>
+          <p class="pipeline-desc">
+            Sentinel-2 spectral bands (B2 to B12), elevation, and meteorological moisture metrics are gathered for target coordinates.
+          </p>
+        </div>
+
+        <div class="pipeline-card">
+          <div class="pipeline-top">
+            <span class="step-tag">02</span>
+            <div class="pipeline-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 21l-4.35-4.35"/><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="3"/>
+              </svg>
+            </div>
+          </div>
+          <h3 class="pipeline-title">Coordinate Targeting</h3>
+          <p class="pipeline-desc">
+            Pick any location directly on the interactive map or submit exact coordinates across any state in India.
+          </p>
+        </div>
+
+        <div class="pipeline-card">
+          <div class="pipeline-top">
+            <span class="step-tag">03</span>
+            <div class="pipeline-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/>
+              </svg>
+            </div>
+          </div>
+          <h3 class="pipeline-title">AI-Driven Scoring</h3>
+          <p class="pipeline-desc">
+            The trained ensemble model transforms multispectral indices (NDVI, NDWI, Ferric Oxide, SWIR ratios) to predict manganese deposit probability.
+          </p>
+        </div>
+
+        <div class="pipeline-card">
+          <div class="pipeline-top">
+            <span class="step-tag">04</span>
+            <div class="pipeline-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/>
+              </svg>
+            </div>
+          </div>
+          <h3 class="pipeline-title">Decision Output</h3>
+          <p class="pipeline-desc">
+            Potential tier (High/Medium/Low), estimated tonnage range, confidence score, and geological factors ready for export.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= REGION CHOICE CTAS ================= -->
+  <section class="section region-choice-section">
+    <div class="container">
+      <div class="section-header text-center">
+        <p class="section-eyebrow">START AN ANALYSIS</p>
+        <h2 class="section-title">Choose the kind of region you're assessing</h2>
+      </div>
+
+      <div class="choice-cards-grid">
+        <div class="choice-card choice-brand" data-tab-trigger="discovered">
+          <div class="choice-icon-row">
+            <span class="choice-badge">Known belt</span>
+            <div class="choice-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/>
+              </svg>
+            </div>
+          </div>
+          <h3 class="choice-title">Discovered Region</h3>
+          <p class="choice-desc">
+            Browse pre-surveyed manganese belts across India (Odisha, Madhya Pradesh, Maharashtra, Karnataka, Goa), color-coded by potential, or jump straight to a known coordinate.
+          </p>
+          <div class="choice-action">
+            <span>Explore known belts &rarr;</span>
+          </div>
+        </div>
+
+        <div class="choice-card choice-copper" data-tab-trigger="undiscovered">
+          <div class="choice-icon-row">
+            <span class="choice-badge">Unexplored area</span>
+            <div class="choice-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/>
+              </svg>
+            </div>
+          </div>
+          <h3 class="choice-title">Undiscovered Region</h3>
+          <p class="choice-desc">
+            Enter any coordinate outside known belts and run the AI scoring model live — soil, spectral bands, and rainfall signals folded into one instant read.
+          </p>
+          <div class="choice-action">
+            <span>Run custom coordinates &rarr;</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= INTERACTIVE DASHBOARD & MAP SECTION ================= -->
+  <section id="map-section" class="section dashboard-section">
+    <div class="container">
+      <div class="dashboard-header">
+        <div>
+          <p class="section-eyebrow">EXPLORATION PLATFORM</p>
+          <h2 class="section-title">Interactive GIS Potential Map</h2>
+        </div>
+
+        <!-- Mode Tabs -->
+        <div class="tab-controls">
+          <button type="button" class="tab-btn active" id="tabDiscoveredBtn">Discovered Belts</button>
+          <button type="button" class="tab-btn" id="tabUndiscoveredBtn">Undiscovered Coordinate Analysis</button>
+        </div>
+      </div>
+
+      <!-- Dashboard Layout -->
+      <div class="dashboard-layout">
+        
+        <!-- Sidebar / Control Panel -->
+        <div class="dashboard-sidebar">
+          
+          <!-- Mode 1: Discovered Belt Browser -->
+          <div id="discoveredControls" class="control-view">
+            <div class="control-box">
+              <h3 class="control-box-title">Known Manganese Belts</h3>
+              <p class="control-box-desc">Select a documented deposit to inspect its geological and meteorological metrics.</p>
+              
+              <div class="zone-list-container" id="zoneListContainer">
+                <!-- Injected dynamically via JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Mode 2: Coordinate Form -->
+          <div id="undiscoveredControls" class="control-view hidden">
+            <div class="control-box">
+              <h3 class="control-box-title">Custom Coordinate Analysis</h3>
+              <p class="control-box-desc">Click anywhere on the map or enter coordinates to compute Sentinel-2 spectral indices and run the ML prediction.</p>
+              
+              <form id="coordForm" class="coord-form">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="latInput">Latitude (°N)</label>
+                    <input type="number" id="latInput" step="0.0001" placeholder="e.g. 21.810" required />
+                  </div>
+                  <div class="form-group">
+                    <label for="lngInput">Longitude (°E)</label>
+                    <input type="number" id="lngInput" step="0.0001" placeholder="e.g. 80.180" required />
+                  </div>
+                </div>
+
+                <div class="form-actions">
+                  <button type="submit" class="btn btn-primary w-full" id="analyzeBtn">
+                    <span>Run AI Analysis</span>
+                  </button>
+                  <button type="button" class="btn btn-secondary w-full" id="quickSampleBtn">
+                    Fill Sample Coordinate
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Results Panel -->
+          <div class="result-box" id="resultBox">
+            <div class="result-box-header">
+              <div>
+                <span class="result-label">Assessment Result</span>
+                <h4 class="result-region-name" id="resRegionName">Select a point to assess</h4>
+                <span class="result-coords" id="resCoords">—</span>
+              </div>
+              <div id="resPotentialBadge" class="potential-badge badge-neutral">PENDING</div>
+            </div>
+
+            <!-- Loader -->
+            <div class="result-loader hidden" id="resultLoader">
+              <div class="spinner"></div>
+              <p>Extracting multispectral bands & evaluating model...</p>
+            </div>
+
+            <!-- Content -->
+            <div class="result-details" id="resultDetails">
+              <div class="metric-row">
+                <span class="metric-label">Potential Score</span>
+                <span class="metric-value font-bold" id="resScore">0%</span>
+              </div>
+              <div class="meter-bar-track">
+                <div class="meter-bar-fill" id="resScoreBar" style="width: 0%;"></div>
+              </div>
+
+              <div class="details-grid">
+                <div class="detail-cell">
+                  <span class="detail-label">Estimated Deposit</span>
+                  <span class="detail-val" id="resEstimate">—</span>
+                </div>
+                <div class="detail-cell">
+                  <span class="detail-label">Model Confidence</span>
+                  <span class="detail-val" id="resConfidence">—</span>
+                </div>
+                <div class="detail-cell">
+                  <span class="detail-label">Soil Signature</span>
+                  <span class="detail-val" id="resSoil">—</span>
+                </div>
+                <div class="detail-cell">
+                  <span class="detail-label">Detected State</span>
+                  <span class="detail-val" id="resState">—</span>
+                </div>
+              </div>
+
+              <!-- Supporting Factors -->
+              <div class="factors-section">
+                <h5 class="factors-title">Supporting Factor Analysis</h5>
+                <div class="factors-list" id="factorsList">
+                  <!-- Injected via JS -->
+                </div>
+              </div>
+
+              <!-- Export Button -->
+              <div class="export-row">
+                <button type="button" class="btn btn-secondary btn-sm w-full" id="exportDataBtn">
+                  <svg viewBox="0 0 24 24" class="icon-sm" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>
+                  </svg>
+                  Export ML DataFrame (JSON)
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Map Container -->
+        <div class="dashboard-map-wrapper">
+          <div id="indiaMap" class="india-map"></div>
+          
+          <!-- Map Legend Overlay -->
+          <div class="map-legend">
+            <span class="legend-title">Manganese Potential</span>
+            <div class="legend-items">
+              <span class="legend-item"><span class="legend-dot dot-high"></span>High (&ge;70%)</span>
+              <span class="legend-item"><span class="legend-dot dot-med"></span>Medium (40-69%)</span>
+              <span class="legend-item"><span class="legend-dot dot-low"></span>Low (&lt;40%)</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="footer">
+    <div class="container footer-container">
+      <div class="footer-brand-col">
+        <a href="#top" class="brand-link">
+          <span class="brand-glyph">
+            <svg viewBox="0 0 32 32" class="brand-svg" aria-hidden="true">
+              <circle cx="16" cy="16" r="9" fill="none" stroke="#7C6AFB" stroke-width="2.4" />
+              <circle cx="16" cy="16" r="2.6" fill="#F5A524" />
+            </svg>
+          </span>
+          <span class="brand-title">Ore<span class="brand-accent">Bit</span></span>
+        </a>
+        <p class="footer-desc">
+          AI-assisted Manganese Ore Potential Mapping platform for mining directorates and meteorological departments across India.
+        </p>
+      </div>
+
+      <div class="footer-nav-col">
+        <h4 class="footer-heading">Navigation</h4>
+        <ul class="footer-links">
+          <li><a href="#top">Home</a></li>
+          <li><a href="#about">About Us</a></li>
+          <li><a href="#how-it-works">How It Works</a></li>
+          <li><a href="#map-section">GIS Map Explorer</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-nav-col">
+        <h4 class="footer-heading">Manganese Belts</h4>
+        <ul class="footer-links">
+          <li><a href="#map-section">Odisha Belt (Keonjhar, Sundargarh)</a></li>
+          <li><a href="#map-section">Madhya Pradesh (Balaghat)</a></li>
+          <li><a href="#map-section">Maharashtra (Nagpur, Bhandara)</a></li>
+          <li><a href="#map-section">Karnataka (Shivamogga, Hospet)</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div class="container footer-bottom-inner">
+        <p>© 2026 OreBit Decision Support System. Developed for geological exploration.</p>
+        <p class="footer-disclaimer">Data models are advisory tools designed to support official ground reconnaissance.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  
+  <!-- Main Script -->
+  <script src="../src/app.js"></script>
+</body>
+</html>
